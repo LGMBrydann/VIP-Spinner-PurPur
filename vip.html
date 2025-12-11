@@ -6,7 +6,7 @@
   <title>VIP Wheel</title>
   <style>
     body {
-      background: #111;
+      background: #0e0e10;
       color: #fff;
       font-family: Arial, sans-serif;
       display: flex;
@@ -14,15 +14,32 @@
       align-items: center;
       margin-top: 40px;
     }
+    #twitch-link {
+      position: fixed;
+      left: 20px;
+      top: 20px;
+      background: #9146FF;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 18px;
+      box-shadow: 0 0 15px #9146FF;
+    }
+    #twitch-link a {
+      color: white;
+      text-decoration: none;
+    }
+    }
     #wheel {
-      width: 400px;
-      height: 400px;
+      width: 420px;
+      height: 420px;
       border-radius: 50%;
-      border: 8px solid #fff;
+      border: 10px solid #9146FF;
+      box-shadow: 0 0 25px #9146FF, inset 0 0 25px #000;
       position: relative;
       overflow: hidden;
+      background: radial-gradient(circle, #1f1f23 0%, #0e0e10 70%);
       transform: rotate(0deg);
-      transition: transform 4s cubic-bezier(0.33, 1, 0.68, 1);
     }
     .slice {
       position: absolute;
@@ -41,10 +58,11 @@
     #pointer {
       width: 0;
       height: 0;
-      border-left: 20px solid transparent;
-      border-right: 20px solid transparent;
-      border-bottom: 40px solid red;
-      margin-bottom: 20px;
+      border-left: 22px solid transparent;
+      border-right: 22px solid transparent;
+      border-bottom: 45px solid #ff4f7b;
+      filter: drop-shadow(0 0 10px #ff4f7b);
+      margin-bottom: 25px;
     }
     #user-input {
       margin-top: 20px;
@@ -77,7 +95,9 @@
 </head>
 <body>
 
-<h1>VIP Spin Wheel</h1>
+<div id="twitch-link"><a href="https://twitch.tv/purpurgmd" target="_blank">twitch.tv/purpurgmd</a></div>
+
+<h1 style="color:#9146FF;text-shadow:0 0 20px #9146FF,0 0 40px #772ce8;" style="color:#9146FF;text-shadow:0 0 15px #9146FF;">VIP Spin Wheel</h1>
 <div id="pointer"></div>
 <div id="wheel"></div>
 
@@ -91,13 +111,13 @@
 <script>
   const wheel = document.getElementById("wheel");
   const result = document.getElementById("result");
+  const spinSound = document.getElementById("spin-sound");
+  const winSound = document.getElementById("win-sound");
 
-  // 1-in-4 chance wheel values
   const segments = ["VIP", "Nope", "Nope", "Nope"];
+  const colors = ["#9146FF", "#444", "#444", "#444"]; 
 
-  // build slices visually
-  const colors = ["#9146FF", "#444", "#444", "#444"]; // Twitch purple for VIP
-
+  wheel.innerHTML = "";
   for (let i = 0; i < 4; i++) {
     const slice = document.createElement("div");
     slice.className = "slice";
@@ -106,25 +126,32 @@
     slice.style.color = i === 0 ? "#fff" : "#ddd";
     slice.textContent = segments[i];
     wheel.appendChild(slice);
-  }(slice);
   }
 
   function spinWheel() {
     const user = document.getElementById("username").value.trim();
-    if (!user) {
-      alert("Enter the Twitch username of whoever redeemed it");
-      return;
-    }
+    if (!user) return alert("Enter the Twitch username of whoever redeemed it");
+
+    spinSound.currentTime = 0;
+    spinSound.play();
 
     const randomIndex = Math.floor(Math.random() * 4);
-    const degree = 360 * 6 + (90 * randomIndex + 45);
+    const degree = 360 * 10 + (90 * randomIndex + 45);
 
+    wheel.style.transition = "transform 5s cubic-bezier(0.075, 0.82, 0.165, 1)";
     wheel.style.transform = `rotate(${degree}deg)`;
 
     setTimeout(() => {
       const prize = segments[randomIndex];
+      if (prize === "VIP") {
+        winSound.play();
+        launchConfetti();
+        result.classList.add("vip-glow");
+      } else {
+        result.classList.remove("vip-glow");
+      }
       result.innerHTML = `${user} spun the wheel → <strong>${prize}</strong>`;
-    }, 4000);
+    }, 5000);
   }
 </script>
 
@@ -170,5 +197,8 @@
       })();
     }
   </script>
+</body>
+</html>
+
 </body>
 </html>
