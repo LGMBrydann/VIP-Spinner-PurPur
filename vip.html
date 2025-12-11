@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VIP Wheel</title>
+  <style>
+    body {
+      background: #111;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 40px;
+    }
+    #wheel {
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      border: 8px solid #fff;
+      position: relative;
+      overflow: hidden;
+      transform: rotate(0deg);
+      transition: transform 4s cubic-bezier(0.33, 1, 0.68, 1);
+    }
+    .slice {
+      position: absolute;
+      width: 50%;
+      height: 50%;
+      top: 50%;
+      left: 50%;
+      transform-origin: 0% 0%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #000;
+      font-weight: bold;
+      background: #fff;
+    }
+    #pointer {
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-bottom: 40px solid red;
+      margin-bottom: 20px;
+    }
+    #user-input {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+    }
+    input {
+      padding: 8px;
+      border-radius: 4px;
+      border: none;
+    }
+    button {
+      padding: 8px 14px;
+      border: none;
+      background: #ff4757;
+      color: #fff;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 22px;
+    }
+    .vip-glow { animation: vipPulse 1s infinite alternate; }
+  @keyframes vipPulse {
+    from { text-shadow: 0 0 10px #fff, 0 0 20px #9146FF; }
+    to { text-shadow: 0 0 20px #fff, 0 0 40px #9146FF; }
+  }
+</style>
+</head>
+<body>
+
+<h1>VIP Spin Wheel</h1>
+<div id="pointer"></div>
+<div id="wheel"></div>
+
+<div id="user-input">
+  <input type="text" id="username" placeholder="Redeemer username" />
+  <button onclick="spinWheel()">Spin</button>
+</div>
+
+<div id="result"></div>
+
+<script>
+  const wheel = document.getElementById("wheel");
+  const result = document.getElementById("result");
+
+  // 1-in-4 chance wheel values
+  const segments = ["VIP", "Nope", "Nope", "Nope"];
+
+  // build slices visually
+  const colors = ["#9146FF", "#444", "#444", "#444"]; // Twitch purple for VIP
+
+  for (let i = 0; i < 4; i++) {
+    const slice = document.createElement("div");
+    slice.className = "slice";
+    slice.style.transform = `rotate(${90 * i}deg) skewY(-45deg)`;
+    slice.style.background = colors[i];
+    slice.style.color = i === 0 ? "#fff" : "#ddd";
+    slice.textContent = segments[i];
+    wheel.appendChild(slice);
+  }(slice);
+  }
+
+  function spinWheel() {
+    const user = document.getElementById("username").value.trim();
+    if (!user) {
+      alert("Enter the Twitch username of whoever redeemed it");
+      return;
+    }
+
+    const randomIndex = Math.floor(Math.random() * 4);
+    const degree = 360 * 6 + (90 * randomIndex + 45);
+
+    wheel.style.transform = `rotate(${degree}deg)`;
+
+    setTimeout(() => {
+      const prize = segments[randomIndex];
+      result.innerHTML = `${user} spun the wheel → <strong>${prize}</strong>`;
+    }, 4000);
+  }
+</script>
+
+  <audio id="spin-sound" src="spin.mp3"></audio>
+  <audio id="win-sound" src="win.mp3"></audio>
+
+<script>
+  const spinSound = document.getElementById("spin-sound");
+  const winSound = document.getElementById("win-sound");
+
+  function spinWheel() {
+    const user = document.getElementById("username").value.trim();
+    if (!user) {
+      alert("Enter the Twitch username of whoever redeemed it");
+      return;
+    }
+
+    spinSound.currentTime = 0;
+    spinSound.play();
+
+    const randomIndex = Math.floor(Math.random() * 4);
+    const degree = 360 * 10 + (90 * randomIndex + 45);
+
+    wheel.style.transition = "transform 5s cubic-bezier(0.075, 0.82, 0.165, 1)";
+    wheel.style.transform = `rotate(${degree}deg)`;
+
+    setTimeout(() => {
+      const prize = segments[randomIndex];
+      if (prize === "VIP") winSound.play();
+      result.innerHTML = `${user} spun the wheel → <strong>${prize}</strong>`;
+    }, 5000);
+  }
+</script>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script>
+    function launchConfetti() {
+      const duration = 2000;
+      const end = Date.now() + duration;
+      (function frame() {
+        confetti({ particleCount: 7, spread: 70 });
+        if (Date.now() < end) requestAnimationFrame(frame);
+      })();
+    }
+  </script>
+</body>
+</html>
