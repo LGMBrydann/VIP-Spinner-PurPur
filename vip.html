@@ -14,6 +14,7 @@
       align-items: center;
       margin-top: 40px;
     }
+
     #twitch-link {
       position: fixed;
       left: 20px;
@@ -24,181 +25,186 @@
       font-weight: bold;
       font-size: 18px;
       box-shadow: 0 0 15px #9146FF;
+      z-index: 50;
     }
-    #twitch-link a {
-      color: white;
-      text-decoration: none;
+    #twitch-link a { color: white; text-decoration: none; }
+
+    #wheel-container {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 40px;
     }
-    }
+
     #wheel {
       width: 420px;
       height: 420px;
       border-radius: 50%;
       border: 10px solid #9146FF;
       box-shadow: 0 0 25px #9146FF, inset 0 0 25px #000;
-      position: relative;
-      overflow: hidden;
       background: radial-gradient(circle, #1f1f23 0%, #0e0e10 70%);
+      overflow: hidden;
+      position: relative;
       transform: rotate(0deg);
     }
-    .slice {
-      position: absolute;
-      width: 50%;
-      height: 50%;
-      top: 50%;
-      left: 50%;
-      transform-origin: 0% 0%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: #000;
-      font-weight: bold;
-      background: #fff;
-    }
+
     #pointer {
+      position: absolute;
+      top: -50px;
       width: 0;
       height: 0;
-      border-left: 22px solid transparent;
-      border-right: 22px solid transparent;
-      border-bottom: 45px solid #ff4f7b;
+      border-left: 25px solid transparent;
+      border-right: 25px solid transparent;
+      border-bottom: 50px solid #ff4f7b;
       filter: drop-shadow(0 0 10px #ff4f7b);
-      margin-bottom: 25px;
+      z-index: 10;
     }
-    #user-input {
-      margin-top: 20px;
-      display: flex;
-      gap: 10px;
-    }
-    input {
-      padding: 8px;
-      border-radius: 4px;
-      border: none;
-    }
-    button {
-      padding: 8px 14px;
-      border: none;
-      background: #ff4757;
-      color: #fff;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    #result {
-      margin-top: 20px;
-      font-size: 22px;
-    }
+
+    #user-input { margin-top: 20px; display: flex; gap: 10px; }
+    input { padding: 8px; border-radius: 4px; border: none; }
+    button { padding: 8px 14px; border: none; background: #ff4757; color: #fff; border-radius: 4px; cursor: pointer; }
+
+    #result { margin-top: 20px; font-size: 22px; min-height: 30px; }
+
     .vip-glow { animation: vipPulse 1s infinite alternate; }
-  @keyframes vipPulse {
-    from { text-shadow: 0 0 10px #fff, 0 0 20px #9146FF; }
-    to { text-shadow: 0 0 20px #fff, 0 0 40px #9146FF; }
-  }
-</style>
+    @keyframes vipPulse {
+      from { text-shadow: 0 0 10px #fff, 0 0 20px #9146FF; }
+      to { text-shadow: 0 0 20px #fff, 0 0 40px #9146FF; }
+    }
+
+    #chat-popup {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      width: 280px;
+      max-height: 300px;
+      overflow: auto;
+      background: rgba(20,20,24,0.9);
+      border: 2px solid #2b2b2f;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 4px 30px rgba(0,0,0,0.6);
+      font-size: 14px;
+    }
+    .chat-line { margin-bottom: 8px; }
+    .chat-user { color: #9146FF; font-weight: bold; margin-right: 6px; }
+  </style>
 </head>
 <body>
 
 <div id="twitch-link"><a href="https://twitch.tv/purpurgmd" target="_blank">twitch.tv/purpurgmd</a></div>
 
-<h1 style="color:#9146FF;text-shadow:0 0 20px #9146FF,0 0 40px #772ce8;" style="color:#9146FF;text-shadow:0 0 15px #9146FF;">VIP Spin Wheel</h1>
-<div id="pointer"></div>
-<div id="wheel"></div>
+<h1 style="color:#9146FF;text-shadow:0 0 20px #9146FF,0 0 40px #772ce8;">VIP Spin Wheel</h1>
+
+<div id="wheel-container">
+  <div id="pointer"></div>
+  <canvas id="wheel" width="420" height="420"></canvas>
+</div>
 
 <div id="user-input">
-  <input type="text" id="username" placeholder="Redeemer username" />
-  <button onclick="spinWheel()">Spin</button>
+  <input type="text" id="username" placeholder="Redeemer username" autocomplete="off" />
+  <button id="spin-btn">Spin</button>
 </div>
 
 <div id="result"></div>
 
-<script>
-  const wheel = document.getElementById("wheel");
-  const result = document.getElementById("result");
-  const spinSound = document.getElementById("spin-sound");
-  const winSound = document.getElementById("win-sound");
-
-  const segments = ["VIP", "Nope", "Nope", "Nope"];
-  const colors = ["#9146FF", "#444", "#444", "#444"]; 
-
-  wheel.innerHTML = "";
-  for (let i = 0; i < 4; i++) {
-    const slice = document.createElement("div");
-    slice.className = "slice";
-    slice.style.transform = `rotate(${90 * i}deg) skewY(-45deg)`;
-    slice.style.background = colors[i];
-    slice.style.color = i === 0 ? "#fff" : "#ddd";
-    slice.textContent = segments[i];
-    wheel.appendChild(slice);
-  }
-
-  function spinWheel() {
-    const user = document.getElementById("username").value.trim();
-    if (!user) return alert("Enter the Twitch username of whoever redeemed it");
-
-    spinSound.currentTime = 0;
-    spinSound.play();
-
-    const randomIndex = Math.floor(Math.random() * 4);
-    const degree = 360 * 10 + (90 * randomIndex + 45);
-
-    wheel.style.transition = "transform 5s cubic-bezier(0.075, 0.82, 0.165, 1)";
-    wheel.style.transform = `rotate(${degree}deg)`;
-
-    setTimeout(() => {
-      const prize = segments[randomIndex];
-      if (prize === "VIP") {
-        winSound.play();
-        launchConfetti();
-        result.classList.add("vip-glow");
-      } else {
-        result.classList.remove("vip-glow");
-      }
-      result.innerHTML = `${user} spun the wheel → <strong>${prize}</strong>`;
-    }, 5000);
-  }
-</script>
-
-  <audio id="spin-sound" src="spin.mp3"></audio>
-  <audio id="win-sound" src="win.mp3"></audio>
+<audio id="spin-sound" src="spin.mp3"></audio>
+<audio id="win-sound" src="win.mp3"></audio>
 
 <script>
-  const spinSound = document.getElementById("spin-sound");
-  const winSound = document.getElementById("win-sound");
+const canvas = document.getElementById('wheel');
+const ctx = canvas.getContext('2d');
+const segments = ['VIP', 'Nope', 'Nope', 'Nope'];
+const colors = ['#ff00ff','#444','#444','#444']; // VIP slice bright
+const spinSound = document.getElementById('spin-sound');
+const winSound = document.getElementById('win-sound');
+const spinBtn = document.getElementById('spin-btn');
+const result = document.getElementById('result');
 
-  function spinWheel() {
-    const user = document.getElementById("username").value.trim();
-    if (!user) {
-      alert("Enter the Twitch username of whoever redeemed it");
-      return;
-    }
-
-    spinSound.currentTime = 0;
-    spinSound.play();
-
-    const randomIndex = Math.floor(Math.random() * 4);
-    const degree = 360 * 10 + (90 * randomIndex + 45);
-
-    wheel.style.transition = "transform 5s cubic-bezier(0.075, 0.82, 0.165, 1)";
-    wheel.style.transform = `rotate(${degree}deg)`;
-
-    setTimeout(() => {
-      const prize = segments[randomIndex];
-      if (prize === "VIP") winSound.play();
-      result.innerHTML = `${user} spun the wheel → <strong>${prize}</strong>`;
-    }, 5000);
+function drawWheel() {
+  const numSegments = segments.length;
+  const arc = (2 * Math.PI) / numSegments;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  for(let i=0;i<numSegments;i++){
+    const startAngle = i * arc;
+    const endAngle = startAngle + arc;
+    ctx.beginPath();
+    ctx.moveTo(210,210);
+    ctx.arc(210,210,210,startAngle,endAngle);
+    ctx.fillStyle = colors[i];
+    ctx.shadowColor = (segments[i]==='VIP') ? '#ff00ff' : 'transparent';
+    ctx.shadowBlur = (segments[i]==='VIP') ? 20 : 0;
+    ctx.fill();
+    ctx.save();
+    ctx.translate(210,210);
+    ctx.rotate(startAngle + arc/2);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 20px Arial';
+    ctx.textAlign = 'right';
+    ctx.fillText(segments[i], 200,5);
+    ctx.restore();
   }
+}
+
+drawWheel();
+
+function spinWheel(){
+  const user = document.getElementById('username').value.trim();
+  if(!user) return alert('Enter the Twitch username of whoever redeemed it');
+  try { spinSound.currentTime=0; spinSound.play().catch(()=>{}); } catch(e){}
+  const spins = 10;
+  const randomIndex = Math.floor(Math.random()*segments.length);
+  const arc = 360/segments.length;
+  const targetAngle = 360*spins + randomIndex*arc + arc/2;
+  canvas.style.transition = 'transform 5s cubic-bezier(0.075, 0.82, 0.165, 1)';
+  canvas.style.transform = `rotate(${targetAngle}deg)`;
+  setTimeout(()=>{
+    const prize = segments[randomIndex];
+    if(prize==='VIP'){
+      try { winSound.currentTime=0; winSound.play().catch(()=>{});} catch(e){}
+      result.classList.add('vip-glow');
+      launchConfetti();
+      // VIP logic here
+    } else { result.classList.remove('vip-glow'); }
+    result.innerHTML = `${user} spun the wheel → <strong>${prize}</strong>`;
+    addChatLine(user,prize);
+  },5000);
+}
+spinBtn.addEventListener('click',spinWheel);
+
+function launchConfetti(){
+  if(typeof confetti !== 'function') return;
+  const duration=2000;
+  const end=Date.now()+duration;
+  (function frame(){
+    confetti({ particleCount: 7, spread: 70 });
+    if(Date.now()<end) requestAnimationFrame(frame);
+  })();
+}
+
+(function createChatPopup(){
+  const chat = document.createElement('div');
+  chat.id='chat-popup';
+  document.body.appendChild(chat);
+})();
+function addChatLine(user,prize){
+  const chat=document.getElementById('chat-popup');
+  if(!chat) return;
+  const line=document.createElement('div');
+  line.className='chat-line';
+  const userSpan=document.createElement('span');
+  userSpan.className='chat-user';
+  userSpan.textContent=user;
+  const msgSpan=document.createElement('span');
+  msgSpan.textContent=prize==='VIP'?' won VIP!':' spun and got nothing.';
+  line.appendChild(userSpan);
+  line.appendChild(msgSpan);
+  chat.appendChild(line);
+  chat.scrollTop=chat.scrollHeight;
+}
 </script>
 
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  <script>
-    function launchConfetti() {
-      const duration = 2000;
-      const end = Date.now() + duration;
-      (function frame() {
-        confetti({ particleCount: 7, spread: 70 });
-        if (Date.now() < end) requestAnimationFrame(frame);
-      })();
-    }
-  </script>
-</body>
-</html>
-
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </body>
 </html>
