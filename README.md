@@ -4,4 +4,4 @@ its just a wheel
 
 nothing special
 
-https://purpur-vip.vercel.app
+https://purpur-vip.neocites.org
